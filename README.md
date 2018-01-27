@@ -38,6 +38,7 @@ Bots have one chance to obey your site’s robots.txt rules. Failure to comply r
 2. Create a new page and assign to this page the template "**blackhole**"
 3. Create a new template file "**blackhole.php**" and call the module `$modules->get('Blackhole')->blackhole();`
 4. Add the rule to your **robot.txt**
+5. Call the module from your `home.php` template `$modules->get('Blackhole')->blackhole();`
 
 Bye bye bad bots!
 
