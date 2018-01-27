@@ -101,6 +101,7 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
                 // output custom message
                 echo $this->frontend_banned_msg_custom;
             }
+            exit(0);
         } elseif ($badbot === 0) {
 
             $filename = $this->BLACKHOLE_DAT_FILE;
@@ -182,7 +183,7 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
 
         }
 
-        exit(0);
+        return false;
     }
 
     protected function blackhole_whitelist($ua) {
