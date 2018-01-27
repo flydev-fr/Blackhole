@@ -182,7 +182,7 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
 
         }
 
-        return false;
+        exit(0);
     }
 
     protected function blackhole_whitelist($ua) {
