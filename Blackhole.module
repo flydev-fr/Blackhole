@@ -5,7 +5,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
 
     protected $BLACKHOLE_DAT_FILE;
 
-    protected static function getDefaultData() {
+    protected static function getDefaultData()
+    {
         return array(
             'ban_logged_users' => 0,
             'redirect_logged_users' => 27, // http404 by default
@@ -25,19 +26,22 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         );
     }
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->setArray(self::getDefaultData());
     }
 
-    public function init() {
+    public function init()
+    {
 
         $this->BLACKHOLE_DAT_FILE = $this->config->paths->siteModules . $this->className . '/blackhole/blackhole.dat';
     }
 
-    protected function blackhole_get_vars() {
+    protected function blackhole_get_vars()
+    {
 
         $ip = $this->blackhole_get_ip();
-        $whois = $this->blackhole_whois();
+        $whois = $this->frontend_show_info ? $this->blackhole_whois() : '';
         $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $this->blackhole_sanitize($_SERVER['HTTP_USER_AGENT']) : null;
         $request = isset($_SERVER['REQUEST_URI']) ? $this->blackhole_sanitize($_SERVER['REQUEST_URI']) : null;
         $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? $this->blackhole_sanitize($_SERVER['SERVER_PROTOCOL']) : null;
@@ -49,12 +53,13 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         return array($ip, $whois, $ua, $request, $protocol, $method, $date, $time);
     }
 
-    protected function blackhole_checkbot($ip, $ua, $request) {
+    protected function blackhole_checkbot($ip, $ua, $request)
+    {
 
         $badbot = 0;
 
         if ($this->ban_logged_users == true && $this->user->isLoggedin()) {
-            if(!$this->redirect_logged_users) { // NullPage
+            if (!$this->redirect_logged_users) { // NullPage
                 return -1;
             } else {
                 $this->session->redirect($this->pages->get($this->redirect_logged_users)->url);
@@ -84,109 +89,110 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
 
     public function blackhole() {
 
-        list ($ip, $whois, $ua, $request, $protocol, $method, $date, $time) = $this->blackhole_get_vars();
+    list ($ip, $whois, $ua, $request, $protocol, $method, $date, $time) = $this->blackhole_get_vars();
 
-        $badbot = $this->blackhole_checkbot($ip, $ua, $request);
+    $badbot = $this->blackhole_checkbot($ip, $ua, $request);
 
-        if ($badbot > 0) {
-            if($this->banned_status_code == '403') {
-                header('HTTP/1.0 403 Forbidden');
-                header("Connection: close");
-                exit(0);
-            }
-            if($this->frontend_banned_msg_type == 'default') {
-                echo '<h1>You have been banned from this domain</h1>';
-                echo '<p>If you think there has been a mistake, <a href="/contact/">contact the administrator</a> via proxy server.</p>';
-            } else {
-                // output custom message
-                echo $this->frontend_banned_msg_custom;
-            }
+    if ($badbot > 0) {
+        if ($this->banned_status_code == '403') {
+            header('HTTP/1.0 403 Forbidden');
+            header("Connection: close");
             exit(0);
-        } elseif ($badbot === 0) {
-
-            $filename = $this->BLACKHOLE_DAT_FILE;
-
-            $fp = fopen($filename, 'a+');
-
-            fwrite($fp, $ip . ' - ' . $method . ' - ' . $protocol . ' - ' . $date . ' - ' . $ua . "\n");
-
-            fclose($fp);
-
-            $message = $date . "\n\n";
-            $message .= 'URL Request: ' . $request . "\n";
-            $message .= 'IP Address: ' . $ip . "\n";
-            $message .= 'User Agent: ' . $ua . "\n\n";
-            $message .= 'Whois Lookup: ' . "\n\n" . $whois . "\n";
-
-            if($this->enable_email_alerts == '1') {
-                $mail = wireMail();
-                $mail->to($this->email_alerts_mailaddress)->from($this->email_alerts_mailaddress_from);
-                $mail->subject("Blackhole banned bot");
-                $mail->body(str_replace('\n', '<br>', $message));
-                //$mail->bodyHTML($message);
-                $result = $mail->send();
-            }
-
-            $info = $this->modules->getModuleInfoVerbose('Blackhole');
-            if($this->frontend_warning_msg_type == 'default') {
-                $markup  = __('<h1>You have fallen into a trap!</h1>
-                            <p>
-                                This site&rsquo;s <a href="/robots.txt">robots.txt</a> file explicitly forbids your presence at this location.
-                                The following Whois data will be reviewed carefully. If it is determined that you suck, you will be banned from
-                                this site.
-                                If you think this is a mistake, <em>now</em> is the time to <a href="/contact/">contact the administrator</a>.
-                            </p>');
-            } else {
-                $markup = $this->frontend_warning_msg_custom;
-            }
-            if($this->frontend_show_info == '1') {
-                $markup .= "<h3>Your IP Address is ". $ip ."</h3><pre>WHOIS Lookup for ". $ip . "\n" . $date . "\n\n" . $whois ."</pre>";
-            }
-            $markup .= '<p><a href="https://github.com/flydev-fr/Blackhole" title="Blackhole for Bad Bots">Blackhole v'. $info['versionStr'] .'</a></p>';
-
-
-            ?><!DOCTYPE html>
-            <html lang="en-US">
-            <head>
-                <title>Welcome to Blackhole!</title>
-                <style>
-                    body {
-                        color: #fff;
-                        background-color: #851507;
-                        font: 14px/1.5 Helvetica, Arial, sans-serif;
-                    }
-
-                    #blackhole {
-                        margin: 20px auto;
-                        width: 700px;
-                    }
-
-                    pre {
-                        padding: 20px;
-                        white-space: pre-line;
-                        border-radius: 10px;
-                        background-color: #b34334;
-                    }
-
-                    a {
-                        color: #fff;
-                    }
-                </style>
-            </head>
-            <body>
-            <div id="blackhole">
-                <?php echo $markup; ?>
-            </div>
-            </body>
-            </html>
-    <?php
-
         }
+        if ($this->frontend_banned_msg_type == 'default') {
+            echo '<h1>You have been banned from this domain</h1>';
+            echo '<p>If you think there has been a mistake, <a href="/contact/">contact the administrator</a> via proxy server.</p>';
+        } else {
+            // output custom message
+            echo $this->frontend_banned_msg_custom;
+        }
+        exit(0);
+    } elseif ($badbot === 0) {
 
-        return false;
+    $filename = $this->BLACKHOLE_DAT_FILE;
+
+    $fp = fopen($filename, 'a+');
+
+    fwrite($fp, $ip . ' - ' . $method . ' - ' . $protocol . ' - ' . $date . ' - ' . $ua . "\n");
+
+    fclose($fp);
+
+    $message = $date . "\n\n";
+    $message .= 'URL Request: ' . $request . "\n";
+    $message .= 'IP Address: ' . $ip . "\n";
+    $message .= 'User Agent: ' . $ua . "\n\n";
+    $message .= 'Whois Lookup: ' . "\n\n" . $whois . "\n";
+
+    if ($this->enable_email_alerts == '1') {
+        $mail = wireMail();
+        $mail->to($this->email_alerts_mailaddress)->from($this->email_alerts_mailaddress_from);
+        $mail->subject("Blackhole banned bot");
+        $mail->body(str_replace('\n', '<br>', $message));
+        //$mail->bodyHTML($message);
+        $result = $mail->send();
     }
 
-    protected function blackhole_whitelist($ua) {
+    $info = $this->modules->getModuleInfoVerbose('Blackhole');
+    if ($this->frontend_warning_msg_type == 'default') {
+        $markup = __('<h1>You have fallen into a trap!</h1>
+                                <p>
+                                    This site&rsquo;s <a href="/robots.txt">robots.txt</a> file explicitly forbids your presence at this location.
+                                    The following Whois data will be reviewed carefully. If it is determined that you suck, you will be banned from
+                                    this site.
+                                    If you think this is a mistake, <em>now</em> is the time to <a href="/contact/">contact the administrator</a>.
+                                </p>');
+    } else {
+        $markup = $this->frontend_warning_msg_custom;
+    }
+    if ($this->frontend_show_info == '1') {
+        $markup .= "<h3>Your IP Address is " . $ip . "</h3><pre>WHOIS Lookup for " . $ip . "\n" . $date . "\n\n" . $whois . "</pre>";
+    }
+    $markup .= '<p><a href="https://github.com/flydev-fr/Blackhole" title="Blackhole for Bad Bots">Blackhole v' . $info['versionStr'] . '</a></p>';
+
+
+    ?><!DOCTYPE html>
+    <html lang="en-US">
+    <head>
+        <title>Welcome to Blackhole!</title>
+        <style>
+            body {
+                color: #fff;
+                background-color: #851507;
+                font: 14px/1.5 Helvetica, Arial, sans-serif;
+            }
+
+            #blackhole {
+                margin: 20px auto;
+                width: 700px;
+            }
+
+            pre {
+                padding: 20px;
+                white-space: pre-line;
+                border-radius: 10px;
+                background-color: #b34334;
+            }
+
+            a {
+                color: #fff;
+            }
+        </style>
+    </head>
+    <body>
+    <div id="blackhole">
+        <?php echo $markup; ?>
+    </div>
+    </body>
+    </html>
+    <?php
+
+    }
+
+    return false;
+    }
+
+    protected function blackhole_whitelist($ua)
+    {
         $bots = str_replace(',', '|', $this->whitelisted_bots);
         if (preg_match("/($bots)/i", $ua)) {
             return true;
@@ -195,7 +201,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         return false;
     }
 
-    protected function blackhole_sanitize($string) {
+    protected function blackhole_sanitize($string)
+    {
 
         $string = trim($string);
         $string = strip_tags($string);
@@ -206,7 +213,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         return $string;
     }
 
-    protected function blackhole_get_ip() {
+    protected function blackhole_get_ip()
+    {
 
         $ip = $this->blackhole_evaluate_ip();
 
@@ -219,7 +227,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         return $this->blackhole_sanitize($ip);
     }
 
-    protected function blackhole_evaluate_ip() {
+    protected function blackhole_evaluate_ip()
+    {
 
         $ip_keys = array('HTTP_CF_CONNECTING_IP', 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_X_REAL_IP', 'HTTP_X_COMING_FROM', 'HTTP_PROXY_CONNECTION', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'HTTP_COMING_FROM', 'HTTP_VIA', 'REMOTE_ADDR');
 
@@ -248,7 +257,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         return 'Error: Invalid Address';
     }
 
-    protected function blackhole_normalize_ip($ip) {
+    protected function blackhole_normalize_ip($ip)
+    {
 
         if (strpos($ip, ':') !== false && substr_count($ip, '.') == 3 && strpos($ip, '[') === false) {
 
@@ -267,7 +277,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         return $ip;
     }
 
-    protected function blackhole_validate_ip($ip) {
+    protected function blackhole_validate_ip($ip)
+    {
 
         $options = FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
 
@@ -295,7 +306,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
 
 
 
-    protected function blackhole_whois() {
+    protected function blackhole_whois()
+    {
         $msg = '';
         $extra = '';
         $server = 'whois.arin.net';
@@ -368,7 +380,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         return $msg;
     }
 
-    public function ___install() {
+    public function ___install()
+    {
         $fg = new Fieldgroup();
         $fg->name = 'blackhole';
         $fg->add($this->fields->get('title')); // needed title field
@@ -383,11 +396,12 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         $this->message('In order to get Blackhole working, you have to create a page and assign to this new page the template "blackhole".');
     }
 
-    public function ___uninstall() {
+    public function ___uninstall()
+    {
         $t = $this->templates->get("blackhole");
         if ($t && $t->getNumPages() > 0) {
             throw new WireException("Can't uninstall because template is used by a page. You must remove the page before uninstalling this module.");
-        } elseif($t) {
+        } elseif ($t) {
             $t = $this->templates->get("blackhole");
             $this->templates->delete($t);
             $this->fieldgroups->delete($t->fieldgroup);
@@ -400,7 +414,8 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
      * @param InputfieldWrapper $inputfields
      *
      */
-    public static function getModuleConfigInputfields(array $data) {
+    public static function getModuleConfigInputfields(array $data)
+    {
 
         $data = array_merge(self::getDefaultData(), $data);
 
@@ -408,7 +423,7 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
 
 
         $blackholepage = wire('pages')->get('template=blackhole, limit=1')->url;
-        if(!empty($blackholepage)) {
+        if (!empty($blackholepage)) {
             $label = __('Robots Rules');
             $description = __('**Add** the following rules to your site\'s **robots.txt** file :');
             $markup = 'User-agent: *<br>Disallow: ' . $blackholepage;
