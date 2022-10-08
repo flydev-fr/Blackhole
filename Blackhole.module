@@ -35,6 +35,15 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
     {
 
         $this->BLACKHOLE_DAT_FILE = $this->config->paths->siteModules . $this->className . '/blackhole/blackhole.dat';
+    if ($this->ban_logged_users == 1 && $this->user->isLoggedin()) {
+      if (!$this->redirect_logged_users) { // NullPage
+        return -1;
+      } else {
+        if ($this->page->id == $this->pages->get('template=blackhole')->id) {
+          $this->session->redirect($this->pages->get($this->redirect_logged_users)->url);
+        }
+      }
+      return -1;
     }
 
     protected function blackhole_get_vars()
