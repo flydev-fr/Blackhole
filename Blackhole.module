@@ -449,7 +449,6 @@ class Blackhole extends WireData implements Module, ConfigurableModule {
         $f->label = __('Logged-in Users');
         $f->label2 = __('Turn-off Blackhole for logged-in users');
         $f->description = __('If a logged user land by &#171;accident&#187; in the black hole, he will be redirected. To ban them, uncheck the box.');
-        $f->checkedValue = true;
         $f->attr('checked', $data['ban_logged_users'] == '1' ? 'checked' : '');
         $wrap->add($f);
 
