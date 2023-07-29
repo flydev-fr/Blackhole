@@ -57,4 +57,14 @@ Bye bye bad bots!
 Enjoy :neckbeard:
 
 <!-- readme: contributors -start -->
+<table>
+<tr>
+    <td align="center">
+        <a href="https://github.com/flydev-fr">
+            <img src="https://avatars.githubusercontent.com/u/11658616?v=4" width="100;" alt="flydev-fr"/>
+            <br />
+            <sub><b>J. Eizmendi</b></sub>
+        </a>
+    </td></tr>
+</table>
 <!-- readme: contributors -end -->
