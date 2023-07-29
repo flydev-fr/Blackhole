@@ -1,15 +1,15 @@
-## [Unreleased]
-- hidden links
-- logs feature
-- manage blackhole .dat file from admin
+# 1.1.0 (2023-07-29)
 
-## [1.0.2] - 2018-03-20
-### Fixed
-- ```Whois``` is not triggered accordingly to the module's option
 
-## [1.0.1] - 2018-01-27
-### Fixed
-- call `exit()` instead of `return false` so the module stop page output
+### Bug Fixes
 
-## [1.0.0] - 2018-01-27
-- Initial release
+* "Turn off for logged-in users" setting [#1](https://github.com/flydev-fr/Blackhole/issues/1) ([46b4b1b](https://github.com/flydev-fr/Blackhole/commit/46b4b1b259cdfdc17dd1b97221ab140b65367326))
+* Redirection loop when "Turn off for logged-in users" is enabled [#1](https://github.com/flydev-fr/Blackhole/issues/1) ([05792d9](https://github.com/flydev-fr/Blackhole/commit/05792d9f12d0765a28f6c092d8baa4104cb1ee05))
+
+
+### Features
+
+* set module version from package.json ([eecafa2](https://github.com/flydev-fr/Blackhole/commit/eecafa2a24df295ba1e541824ba6ff6cbee2112f))
+
+
+
