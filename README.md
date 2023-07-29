@@ -55,6 +55,3 @@ Bye bye bad bots!
 - [From the modules directory](https://processwire.com/modules/blackhole/)
 
 Enjoy :neckbeard:
-
-<!-- readme: contributors -start -->
-<!-- readme: contributors -end -->
