@@ -1,0 +1,27 @@
+name: Security
+on: push
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      # Checkout Code
+      - name: Checkout Code
+        uses: actions/checkout@v1
+
+      # Setup Snyk
+      - name: ⚙️ Setup Snyk
+        uses: snyk/actions/setup@master
+
+      - name: 🛡️ Run Snyk to check for vulnerabilities
+        uses: snyk/actions/php@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        with:
+          args: --severity-threshold=high --sarif-file-output=results.sarif
+
+      - name: 📜 Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
